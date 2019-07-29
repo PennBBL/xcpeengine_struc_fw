@@ -1,0 +1,42 @@
+{
+	"name": "xcpengine_struc-fw",
+	"label":  "XCPENGINE-struc: pipeline for processing of  structural and functional data.",
+	"description": " xcpEngine for structrual processing.",
+	"version": "1.0631",
+	"inputs": {
+		"api_key": {
+			"base": "api-key"
+		},
+		"designfile": {
+			"base": "file",
+			"description": "designfile: list all modules to run"
+		},
+		"img": {
+			"base": "file",
+			"description": "asl or structural image ",
+			"optional": true
+		}
+	},
+	"config": {
+		"analysis_type": {
+			"default": "xcp",
+			"description": " analysis type: [fc,struc,task,cbf]",
+			"type": "string"
+		}
+	},
+	"author": "Ted Satterthwaite",
+	"maintainer": "Ted Satterthwaite",
+	"cite": "Ciric, Rastko and Rosen, Adon F. G. and Erus, Guray and Cieslak, Matthew and Adebimpe, Azeez and Cook, Philip A. and Bassett, Danielle S. and Davatzikos, Christos and Wolf, Daniel H. and Satterthwaite, Theodore D., Mitigating head motion artifact in functional connectivity MRI",
+	"license": "Other",
+	"source": "https://github.com/PennBBL/xcpEngine",
+	"url": "https://xcpengine.readthedocs.io/",
+	"custom": {
+		"flywheel": {
+			"suite": "PennBBL"
+		},
+		"gear-builder": {
+			"category": "analysis",
+			"image": "pennbbl/xcpengine"
+		}
+	}
+}

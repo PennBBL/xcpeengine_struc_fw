@@ -1,0 +1,119 @@
+#! /bin/bash
+#
+# Flywheel 2017
+#
+#
+
+
+################################################################################
+# DEFINE VARIABLES
+
+FLYWHEEL_BASE=/flywheel/v0
+MANIFEST_FILE=$FLYWHEEL_BASE/manifest.json
+INPUT_DIR=$FLYWHEEL_BASE/input
+GEAR_OUTPUT_DIR=$FLYWHEEL_BASE/output
+WORKING_DIR=$GEAR_OUTPUT_DIR/work/
+CONTAINER='[flywheel/xcpengine]'
+XCP_OUTPUT_DIR=$GEAR_OUTPUT_DIR/
+IMG=$INPUT_DIR/img
+
+
+
+################################################################################
+# DISPLAY XCPENGINE DOCKERFILE FOR BUILD INFO
+
+echo -e "$CONTAINER BEGIN XCPENGINE DOCKERFILE\n"
+cat ${FLYWHEEL_BASE}/*Dockerfile
+echo -e "$CONTAINER END XCPENGINE DOCKERFILE \n"
+
+
+################################################################################
+# CONFIGURE ENV
+
+source ${FLYWHEEL_BASE}/docker-env.sh
+
+
+
+##############################################################################
+# Parse configuration
+
+   # get the inputs files
+jq1=$XCPEDIR/thirdparty/jq/jq-linux64
+
+if [[ -f $CONFIG_FILE ]]; then
+  eval $($jq1 -r '.inputs | to_entries[] | "XCP_INPUT_\(.key)=\(.value.location.path)"' $CONFIG_FILE)
+  echo "$(set | grep XCP_INPUT)"
+fi
+
+
+
+function parse_config {
+
+  CONFIG_FILE=$FLYWHEEL_BASE/config.json
+  MANIFEST_FILE=$FLYWHEEL_BASE/manifest.json
+
+  if [[ -f $CONFIG_FILE ]]; then
+    echo "$(cat $CONFIG_FILE | $jq1 -r '.config.'$1)"
+  else
+    CONFIG_FILE=$MANIFEST_FILE
+    echo "$(cat $CONFIG_FILE | $jq1 -r '.config.'$1'.default')"
+  fi
+}
+
+
+################################################################################
+
+# check the design file
+
+if [[ -z "${DESIGNFILE}/*dsn" ]]; then
+    echo -e "The design file is not supply or not available  \n!"
+    echo -e " SEE https://xcpengine.readthedocs.io/config/design.html#designfile \n "
+    exit 1
+fi
+cohortfile=${XCP_OUTPUT_DIR}/cohortfile.csv
+
+if  [[ -f $(ls -f ${IMG}/*nii.gz 2>/dev/null )  ]]; then 
+      img=$(ls -f ${IMG}/*nii.gz)
+      echo " Ensure appropriate structural design file is supplied \n" 
+       rm -rf ${cohortfile}
+       echo id0,img > $cohortfile
+       echo sub-struct,${img} >> $cohortfile
+      fi
+fi
+
+################################################################################
+# RUN XCPEENGINE now
+designfile=$(ls -f $DESIGNFILE/*dsn)
+
+time /xcpEngine/xcpEngine \
+      -d  $designfile  \
+      -c  $cohortfile  \
+      -o  ${XCP_OUTPUT_DIR}/structural \
+      -i  ${WORKING_DIR} \
+      -a jlf_parallel=1
+
+
+cd  $XCP_OUTPUT_DIR/ 
+zip -r -q ${XCP_OUTPUT_DIR}/xcpEnginestruct.zip structural
+rm -rf $XCP_OUTPUT_DIR/structural
+
+
+XCPENGINE_EXITSTATUS=0
+
+
+################################################################################
+# CLEANUP OUTPUTS
+
+
+echo "$CONTAINER  completed the execution. Check the log files for anyg errors."
+echo ' '
+echo ' cleaning the working directory'
+cd "$GEAR_OUTPUT_DIR"
+
+  chmod -R 777 $GEAR_OUTPUT_DIR
+
+
+# Clean up
+rm -rf "$WORKING_DIR"
+
+exit $XCPENGINE_EXITSTATUS
