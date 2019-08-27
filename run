@@ -16,7 +16,7 @@ WORKING_DIR=$GEAR_OUTPUT_DIR/work/
 CONTAINER='[flywheel/xcpengine]'
 XCP_OUTPUT_DIR=$GEAR_OUTPUT_DIR/
 IMG=$INPUT_DIR/img
-
+DESIGNFILE=$INPUT_DIR/designfile
 
 
 ################################################################################
@@ -78,7 +78,7 @@ if  [[ -f $(ls -f ${IMG}/*nii.gz 2>/dev/null )  ]]; then
        rm -rf ${cohortfile}
        echo id0,img > $cohortfile
        echo sub-struct,${img} >> $cohortfile
-      fi
+    
 fi
 
 ################################################################################
